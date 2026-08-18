@@ -4,7 +4,7 @@
 from fastapi import Header, HTTPException
 
 from models.schemas import AuthenticatedCaller
-from services.supabase_client import supabase_admin
+from services.supabase_client import get_maybe_single, supabase_admin
 
 
 def _unauthorized() -> HTTPException:
@@ -36,14 +36,8 @@ def verify_caller(authorization: str = Header(None)) -> AuthenticatedCaller:
 
     patient_id = None
     if role == "patient":
-        record = (
-            supabase_admin.table("patients")
-            .select("id")
-            .eq("user_id", user.id)
-            .maybe_single()
-            .execute()
-        )
-        patient_id = record.data["id"] if record.data else None
+        record = get_maybe_single("patients", "user_id", user.id)
+        patient_id = record["id"] if record else None
 
     return AuthenticatedCaller(user_id=user.id, role=role, patient_id=patient_id)
 

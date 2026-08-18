@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import AuthenticatedCaller, Patient
 from services.auth_service import authorize_patient_access, verify_caller
 from services.embedding_service import embed_and_store, query_similar
-from services.supabase_client import supabase
+from services.supabase_client import get_maybe_single, supabase
 
 router = APIRouter()
 
@@ -14,14 +14,7 @@ TOP_K = 5
 def _enrich_match(match: dict) -> dict:
     """Attach approved_treatment + outcome_notes for a matched patient (LLD §3.3 contract)."""
     matched_patient_id = match["matched_patient_id"]
-    approval = (
-        supabase.table("approvals")
-        .select("status", "doctor_notes")
-        .eq("patient_id", matched_patient_id)
-        .maybe_single()
-        .execute()
-        .data
-    )
+    approval = get_maybe_single("approvals", "patient_id", matched_patient_id)
     approved_treatment = None
     outcome_notes = None
     if approval and approval["status"] == "approved":
@@ -45,9 +38,7 @@ def _enrich_match(match: dict) -> dict:
 
 @router.post("/similar/{patient_id}")
 async def similar(patient_id: str, caller: AuthenticatedCaller = Depends(verify_caller)):
-    patient = (
-        supabase.table("patients").select("*").eq("id", patient_id).maybe_single().execute().data
-    )
+    patient = get_maybe_single("patients", "id", patient_id)
     if patient is None:
         raise HTTPException(404, detail={"error": "not_found", "detail": "Patient not found"})
     authorize_patient_access(caller, patient)  # §11 — 403 if not owner/doctor
