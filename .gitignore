@@ -20,3 +20,10 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+
+
+backend/env
+frontend/env.download
+.env
+.env.local
+*.env
