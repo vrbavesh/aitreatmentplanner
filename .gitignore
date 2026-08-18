@@ -1,0 +1,22 @@
+# HLD v2 §0.5 / LLD v2 §10 — real credentials are never committed.
+# Only the .env.example equivalents are tracked.
+backend/.env
+frontend/.env.local
+.env
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build output
+.next/
+out/
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
